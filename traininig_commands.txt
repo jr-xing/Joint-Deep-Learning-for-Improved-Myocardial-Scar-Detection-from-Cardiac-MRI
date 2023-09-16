@@ -1,0 +1,16 @@
+for i in */ .*/ ; do      echo -n $i": " ;      (find "$i" -type f | wc -l) ;  done
+find . -name 'valid_images_*.png' -exec rm -r {} \;
+find . -name 'tranining_image_*.png' -exec rm -r {} \;
+
+wandb sweep ./configs/test_wandb_sweep.yaml
+CUDA_VISIBLE_DEVICES=0,1 wandb agent --count 50 <USERNAME/PROJECTNAME/SWEEPID>
+
+
+CUDA_VISIBLE_DEVICES=0,1 python ./training_network.py --config-file=./configs/default_crossstitch_myo_scar_seg_config.json --data--mask_type=scar_mask -mask-out=myocardium_mask --crop_to_myocardium_size=112,112 --resize-img-size=224,224 --load-pretrained-model=True --network--name=TransUNet --save-nothing=True --batch-size=20 --mask-out=myocardium_mask
+
+
+CUDA_VISIBLE_DEVICES=0,1 python ./training_network.py --config-file=./configs/default_crossstitch_myo_scar_seg_config.json --load-pretrained-model=False --batch-size=20 --wandb-sweep=False --network--network1--load_pretrained_model=True --network--network1--load_pretrained_transformer=True --network--network2--load_pretrained_model=True --network--network2--load_pretrained_transformer=True
+
+CUDA_VISIBLE_DEVICES=1,2,3 python ./training_network.py --config-file=./configs/default_two_step_myo_scar_seg_config_resize.json --batch-size=20 --wandb-sweep=False --network--network1--name="TransUNet"  --network--network1--load_pretrained_model=True --network--network1--load_pretrained_transformer=True --network--network2--name="TransUNet" --network--network2--load_pretrained_model=True --network--network2--load_pretrained_transformer=True
+
+CUDA_VISIBLE_DEVICES=1,2,3 python ./training_network.py --config-file=./configs/default_crossstitch_myo_scar_seg_config_resize.json --batch-size=20 --wandb-sweep=False --network--network1--name="TransUNet"  --network--network1--load_pretrained_model=True --network--network1--load_pretrained_transformer=True --network--network2--name="TransUNet" --network--network2--load_pretrained_model=True --network--network2--load_pretrained_transformer=True

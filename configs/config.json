@@ -1,0 +1,265 @@
+{    
+    "preprocessing": [
+        {
+            "method": "crop_to_myocardium",
+            "targets": [
+                "image",
+                "mask1",
+                "mask2"
+            ],
+            "target_dataset_names": [
+                "LGE1K",
+                "Fred"
+            ],
+            "myocardium_key": "mask1",
+            "center_type": "myocardium center",
+            "size": [
+                2,
+                2
+            ],
+            "size-comment": "if size=0.x, size->0.x*image_size; if size=1.x,size=myo_size*1.x",
+            "margin": 0
+        },
+        {
+            "method": "resize",
+            "shape": [
+                300,
+                300
+            ],
+            "targets": [
+                "image",
+                "mask1",
+                "mask2"
+            ],
+            "target_dataset_names": [
+                "LGE1K",
+                "Fred"
+            ]
+        },
+        {
+            "method": "skipthis-auto_constrast",
+            "algorithm": "histogram equalization",
+            "targets": [
+                "image"
+            ],
+            "target_dataset_names": [
+                "LGE1K",
+                "Fred"
+            ]
+        },
+        {
+            "method": "normalize",
+            "range": [
+                0,
+                1
+            ],
+            "targets": [
+                "image"
+            ],
+            "target_dataset_names": [
+                "LGE1K",
+                "Fred"
+            ]
+        },
+        {
+            "method": "close",
+            "radius": 6,
+            "targets": [
+                "mask1",
+                "mask2"
+            ],
+            "target_dataset_names": [
+                "LGE1K",
+                "Fred"
+            ]
+        },
+        {
+            "method": "set_property",
+            "property": "has_mask1",
+            "value": 0,
+            "target_type": "",
+            "target_patterns": [
+                ".*Athdemkap.*",
+                ".*Batascor.*",
+                ".*Bekare.*",
+                ".*Bimoqua.*",
+                ".*Bletomo.*",
+                ".*Bujisri.*",
+                ".*Cajaseen.*",
+                ".*Cihurub.*",
+                ".*Codure.*",
+                ".*Culebu.*",
+                ".*Dilibu.*",
+                ".*Distroji.*",
+                ".*Dujuejo.*",
+                ".*Esjitig.*",
+                ".*Etepig.*",
+                ".*Eyudib.*",
+                ".*Fagegot.*",
+                ".*Feruga.*",
+                ".*Fidugal.*",
+                ".*Filutuk.*",
+                ".*Fokokous.*",
+                ".*Gawuce.*",
+                ".*Gilicho.*",
+                ".*Gosike.*",
+                ".*Hetenok.*",
+                ".*Hoofaki.*",
+                ".*Hufapuln.*",
+                ".*Japoja.*",
+                ".*Jasnatak.*",
+                ".*Juegufok.*",
+                ".*Jupudo.*",
+                ".*Katistfal.*",
+                ".*Kefipu.*",
+                ".*Kigeque.*",
+                ".*Ladiraf.*",
+                ".*Lajooki.*",
+                ".*Lyedu.*",
+                ".*Moususu.*",
+                ".*Munupu.*",
+                ".*Nukoji.*",
+                ".*Oljiluep.*",
+                ".*Orezol.*",
+                ".*Oyepok.*",
+                ".*Quelada.*",
+                ".*Quonema.*",
+                ".*Quoquegey.*",
+                ".*Rogotik.*",
+                ".*Saquida.*",
+                ".*Snajomack.*",
+                ".*Sugodop.*",
+                ".*Susole.*",
+                ".*Waslistri.*",
+                ".*PaulSmith.*",
+                ".*101_CH_MR.*",
+                ".*102_03_RS_MR.*",
+                ".*121_53_DY_MR.*",
+                ".*49_KJ_MR.*"
+            ]
+        }
+    ],
+    "transforms": [
+        {
+            "name": "training-augmentation",
+            "target_roles": [
+                "train"
+            ],
+            "transforms": [
+                {
+                    "method": "albumentations.Affine",
+                    "scale": [
+                        0.8,
+                        1.2
+                    ],
+                    "translate_px": [
+                        -10,
+                        10
+                    ],
+                    "rotate": [
+                        -180,
+                        180
+                    ],
+                    "shear": [
+                        -5,
+                        5
+                    ],
+                    "p": 1,
+                    "mode": 1
+                },
+                {
+                    "method": "albumentations.CenterCrop",
+                    "height": 224,
+                    "width": 224
+                },
+                {
+                    "method": "albumentations.ToTensorV2"
+                }
+            ]
+        },
+        {
+            "name": "test",
+            "target_roles": [
+                "test"
+            ],
+            "transforms": [
+                {
+                    "method": "albumentations.CenterCrop",
+                    "height": 224,
+                    "width": 224
+                },
+                {
+                    "method": "albumentations.ToTensorV2"
+                }
+            ]
+        }
+    ],
+    "network": {
+        "type": "ComboNet",
+        "network1": {
+            "type": "TransUNet"            
+        },
+        "network2": {
+            "type": "TransUNet"
+        },
+        "load_pretrained_model": true,
+        "pretrained_model_path": "/u/jw4hv/subspace/Research_projects/cardiac/cardiac-segmentation/codeV2/networks/TransUNet/R50+ViT-B_16.npz"
+    },
+    "training": {
+        "seed": 4399,
+        "scheme": "semi_supervised",
+        "optimizers": {
+            "segmentation": {
+                "type": "Adam",
+                "target": "Generator",
+                "weight_decay": 1e-06,
+                "learning_rate": 3.657828766097514e-05
+            }
+        },
+        "mixed Precision": true,
+        "epochs": 500,
+        "batch size": 40,
+        "preload data": true
+    },
+    "loss": {
+        "input_GT_pred_role_pairs": [
+            {
+                "input": "input1",
+                "pred": "logits1",
+                "GT": "mask1",
+                "weight": 1.101911736229661
+            },
+            {
+                "input": "input2",
+                "pred": "logits2",
+                "GT": "mask2",
+                "weight": 1
+            }
+        ]
+    },
+    "evaluation": {
+        "method": "Dice",
+        "eval_input_GT_pred_role_pairs": [
+            {
+                "input": "input2",
+                "pred": "logits2",
+                "GT": "mask2"
+            }
+        ]
+    },
+    "saving": {
+        "save final model": true,
+        "save_best_only": true,
+        "save_model_num": 3,
+        "performance_log_dir": "/p/mmcardiac/Resaerch_projects/cardiac/cardiac-segmentation/cardiac-segmentation-2/codeV6/exp_results/wandb_sweep_logs",
+        "save checkpoint": true,
+        "save prediction": true,
+        "save KeyboardInterrupt": true,
+        "adjust contrast": false
+    },
+    "others": {
+        "use wandb": true,
+        "wandb sweep file": "./configs/test_wandb_sweep.yaml",
+        "print_config": true
+    }
+}

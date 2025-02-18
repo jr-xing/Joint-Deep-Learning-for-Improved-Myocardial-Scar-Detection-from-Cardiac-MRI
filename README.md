@@ -1,6 +1,7 @@
 # Joint Deep Learning for Improved Myocardial Scar Detection
 
 This repository contains the official implementation of the paper [Joint Deep Learning for Improved Myocardial Scar Detection From Cardiac MRI](https://pubmed.ncbi.nlm.nih.gov/38523738/).
+![nihms-1977483-f0001](https://github.com/user-attachments/assets/aef991b4-2d4f-4cd5-a42a-22e1557c821f)
 
 ## Abstract
 
